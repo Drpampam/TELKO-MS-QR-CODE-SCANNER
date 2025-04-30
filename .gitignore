@@ -367,3 +367,8 @@ FodyWeavers.xsd
 appsettings.json
 appsettings.*.json
 !appsettings.Example.json
+
+# IDE
+.idea/
+*.swp
+*.swo
