@@ -1,6 +1,8 @@
-﻿namespace Domain.Entities
+﻿using ConfigurationService.Domain.Common;
+
+namespace Domain.Entities
 {
-    public class EmployeeContact
+    public class EmployeeContact : BaseEntity
     {
         public string FullName { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;

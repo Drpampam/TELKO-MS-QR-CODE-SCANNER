@@ -1,5 +1,5 @@
-﻿using Application.Interfaces.Application;
-using Domain.Entities;
+﻿using Application.DTOs;
+using Application.Interfaces.Application;
 using Microsoft.Extensions.Logging;
 using QRCoder;
 using System.Text;
@@ -23,7 +23,7 @@ namespace Application.Features.Helpers
             return qrCode.GetGraphic(20);
         }
 
-        public string GenerateVCard(EmployeeContact contact)
+        public string GenerateVCard(EmployeeContactDto contact)
         {
             var sb = new StringBuilder();
             sb.AppendLine("BEGIN:VCARD");
@@ -39,7 +39,7 @@ namespace Application.Features.Helpers
             return sb.ToString();
         }
 
-        public string ToVCard(EmployeeContact contact)
+        public string ToVCard(EmployeeContactDto contact)
         {
             var sb = new StringBuilder();
             sb.AppendLine("BEGIN:VCARD");

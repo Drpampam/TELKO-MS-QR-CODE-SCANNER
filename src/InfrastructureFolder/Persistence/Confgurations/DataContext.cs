@@ -13,14 +13,7 @@ namespace Persistence.Confgurations
         {
         }
 
-
-        protected override void OnConfiguring(DbContextOptionsBuilder options)
-        {
-            if (!options.IsConfigured)
-            {
-                options.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=MyDatabase;Trusted_Connection=True;");
-            }
-        }
+        public DbSet<EmployeeContact> EmployeeContacts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
