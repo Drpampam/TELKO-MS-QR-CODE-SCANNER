@@ -13,7 +13,6 @@ namespace Persistence.Confgurations
         {
         }
 
-        public DbSet<Demo> Demo { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {
