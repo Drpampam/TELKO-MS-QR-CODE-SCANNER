@@ -6,6 +6,8 @@ using Persistence.Extensions.Persistence;
 using Persistence.Extensions.Repository;
 using Serilog;
 using Persistence.Repositories;
+using Application.Features.Configurations;
+using Application.Features.Validations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,6 +50,13 @@ builder.Services.AddCors(options =>
 
 
 });
+
+builder.Services.Configure<EmployeeContactDefaultsOptions>(
+    builder.Configuration.GetSection("EmployeeContactDefaults"));
+
+builder.Services.AddScoped<EmployeeContactFormValidator>();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

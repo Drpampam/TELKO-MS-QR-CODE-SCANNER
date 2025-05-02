@@ -1,14 +1,16 @@
 ﻿using Application.DTOs;
 using Application.Features.Constants;
 using Application.Features.Pagination;
+using Application.Features.Validations;
 using Application.Interfaces;
 using Application.Interfaces.Application;
 using Application.Responses;
 using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Text;
-using static Application.DTOs.GetAllContacts;
 using System.Text.Json;
+using static Application.DTOs.GetAllContacts;
 
 namespace Application.Services
 {
@@ -18,18 +20,40 @@ namespace Application.Services
         private readonly ILogger<ApplicationService> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IAsyncRepository<EmployeeContact> _repository;
-        public ApplicationService(IHelper helper, ILogger<ApplicationService> logger, IAsyncRepository<EmployeeContact> repository, IUnitOfWork unitOfWork)
+        private readonly EmployeeContactFormValidator _validator;
+        public ApplicationService(IHelper helper,
+            ILogger<ApplicationService> logger,
+            IAsyncRepository<EmployeeContact> repository,
+            IUnitOfWork unitOfWork, EmployeeContactFormValidator validationRules)
         {
             _helper = helper;
             _logger = logger;
             _repository = repository;
             _unitOfWork = unitOfWork;
+            _validator = validationRules;
         }
 
         public async Task<BaseResponse<EmployeeContact>> AddContactAsync(EmployeeContactDto req)
         {
             try
             {
+                var validationResult = _validator.Validate(req);
+                if (!validationResult.IsValid)
+                {
+                    var validationErrors = validationResult.Errors.Select(e => new
+                    {
+                        Property = e.PropertyName,
+                        Error = e.ErrorMessage
+                    }).ToList();
+
+                    return new BaseResponse<EmployeeContact>
+                    {
+                        ResponseCode = ResponseCodes.VALIDATION_ERROR,
+                        Message = JsonSerializer.Serialize(validationErrors)
+                                + ": Validation failed"
+                    };
+                }
+
                 EmployeeContact employeeContact = new EmployeeContact();
                 req.ConvertFromDto(employeeContact);
                 if (string.IsNullOrEmpty(employeeContact.Phone))
@@ -287,5 +311,303 @@ namespace Application.Services
                 };
             }
         }
+
+        /// <summary>
+        /// Imports employee contacts from an Excel or CSV file
+        /// </summary>
+        /// <param name="fileStream">The uploaded file stream</param>
+        /// <param name="fileName">The original file name with extension</param>
+        /// <returns>A response with the import results</returns>
+        public async Task<BaseResponse<ImportResult>> ImportContactsFromFileAsync(IFormFile file)
+        {
+            try
+            {
+                var fileName = file.FileName;
+                _logger.LogInformation($"Starting import of contacts from file: {fileName}");
+
+                // Validate file
+                if (file == null || file.Length == 0)
+                {
+                    return new BaseResponse<ImportResult>
+                    {
+                        ResponseCode = ResponseCodes.INVALID_REQUEST,
+                        Message = "Please upload a file"
+                    };
+                }
+
+                // Check file extension
+                string fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (fileExtension != ".csv" && fileExtension != ".xlsx" && fileExtension != ".xls")
+                {
+                    return new BaseResponse<ImportResult>
+                    {
+                        ResponseCode = ResponseCodes.INVALID_REQUEST,
+                        Message = "Only CSV and Excel files are supported"
+                    };
+                }
+
+                List<EmployeeContactDto> contacts;
+
+                // Read and parse file
+                using (var fileStream = file.OpenReadStream())
+                {
+                    if (fileExtension == ".csv")
+                    {
+                        contacts = await ParseCsvFile(fileStream);
+                    }
+                    else // Excel formats
+                    {
+                        contacts = await ParseExcelFile(fileStream, fileExtension);
+                    }
+                }
+
+                // If no contacts were parsed, return an error
+                if (contacts == null || !contacts.Any())
+                {
+                    return new BaseResponse<ImportResult>
+                    {
+                        ResponseCode = ResponseCodes.VALIDATION_ERROR,
+                        Message = "No valid contacts found in the file."
+                    };
+                }
+
+                _logger.LogInformation($"Parsed {contacts.Count} contacts from file");
+
+                // Process each contact
+                int successCount = 0;
+                int failureCount = 0;
+                List<string> errors = new List<string>();
+
+                foreach (var contact in contacts)
+                {
+                    // Validate the contact
+                    var validationResult = _validator.Validate(contact);
+                    if (!validationResult.IsValid)
+                    {
+                        string contactIdentifier = !string.IsNullOrEmpty(contact.FullName)
+                            ? contact.FullName
+                            : (!string.IsNullOrEmpty(contact.Phone) ? contact.Phone : "Unknown");
+
+                        string errorDetails = $"Validation failed for contact '{contactIdentifier}': " +
+                                              string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
+
+                        errors.Add(errorDetails);
+                        failureCount++;
+                        continue;
+                    }
+
+                    // Check if contact already exists
+                    if (!string.IsNullOrEmpty(contact.Phone))
+                    {
+                        var existingContact = await GetContactDetailsByPhone(contact.Phone);
+                        if (existingContact.ResponseCode == ResponseCodes.SUCCESS)
+                        {
+                            errors.Add($"Contact with phone number '{contact.Phone}' already exists");
+                            failureCount++;
+                            continue;
+                        }
+                    }
+
+                    // Add the contact
+                    EmployeeContact employeeContact = new EmployeeContact();
+                    contact.ConvertFromDto(employeeContact);
+
+                    await _repository.AddAsync(employeeContact);
+                    successCount++;
+                }
+
+                // Commit all changes to database
+                await _unitOfWork.CommitChangesAsync();
+
+                // Prepare result
+                var importResult = new ImportResult
+                {
+                    TotalProcessed = contacts.Count,
+                    SuccessCount = successCount,
+                    FailureCount = failureCount,
+                    Errors = errors
+                };
+
+                return new BaseResponse<ImportResult>
+                {
+                    ResponseCode = successCount > 0 ? ResponseCodes.SUCCESS : ResponseCodes.DUPLICATE_RESOURCE,
+                    Message = GetImportResultMessage(successCount, failureCount),
+                    Data = importResult
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while importing contacts from file");
+                return new BaseResponse<ImportResult>
+                {
+                    ResponseCode = ResponseCodes.SERVER_ERROR,
+                    Message = "An error occurred while importing contacts: " + ex.Message
+                };
+            }
+        }
+
+
+        private async Task<List<EmployeeContactDto>> ParseCsvFile(Stream fileStream)
+        {
+            List<EmployeeContactDto> contacts = new List<EmployeeContactDto>();
+
+            // Create a stream reader
+            using (var reader = new StreamReader(fileStream))
+            {
+                // Read the CSV data
+                string csvData = await reader.ReadToEndAsync();
+
+                // Parse the CSV using Papaparse-like approach
+                var lines = csvData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                if (lines.Length < 2) // At least header + one data row
+                {
+                    return contacts;
+                }
+
+                // Parse header row
+                var headerRow = lines[0].Split(',');
+                var headerIndexMap = new Dictionary<string, int>();
+
+                // Map header names to column indices
+                for (int i = 0; i < headerRow.Length; i++)
+                {
+                    string headerName = headerRow[i].Trim().ToLowerInvariant();
+                    headerIndexMap[headerName] = i;
+                }
+
+                // Process data rows
+                for (int lineIndex = 1; lineIndex < lines.Length; lineIndex++)
+                {
+                    var dataRow = lines[lineIndex].Split(',');
+                    if (dataRow.Length < headerRow.Length)
+                    {
+                        continue; // Skip incomplete rows
+                    }
+
+                    var contact = new EmployeeContactDto();
+
+                    // Map CSV fields to DTO properties
+                    if (headerIndexMap.TryGetValue("fullname", out int fullNameIndex))
+                        contact.FullName = CleanField(dataRow[fullNameIndex]);
+
+                    if (headerIndexMap.TryGetValue("phone", out int phoneIndex))
+                        contact.Phone = CleanField(dataRow[phoneIndex]);
+
+                    if (headerIndexMap.TryGetValue("email", out int emailIndex))
+                        contact.Email = CleanField(dataRow[emailIndex]);
+
+                    if (headerIndexMap.TryGetValue("title", out int titleIndex))
+                        contact.Title = CleanField(dataRow[titleIndex]);
+
+                    if (headerIndexMap.TryGetValue("company", out int companyIndex))
+                        contact.Company = CleanField(dataRow[companyIndex]);
+
+                    if (headerIndexMap.TryGetValue("linkedin", out int linkedinIndex))
+                        contact.LinkedIn = CleanField(dataRow[linkedinIndex]);
+
+                    contacts.Add(contact);
+                }
+            }
+
+            return contacts;
+        }
+
+        private async Task<List<EmployeeContactDto>> ParseExcelFile(Stream fileStream, string fileExtension)
+        {
+            List<EmployeeContactDto> contacts = new List<EmployeeContactDto>();
+
+            // Use a memory stream since we need to reset the position
+            using (var ms = new MemoryStream())
+            {
+                await fileStream.CopyToAsync(ms);
+                ms.Position = 0;
+
+                using (var workbook = new ClosedXML.Excel.XLWorkbook(ms))
+                {
+                    // Assume data is in the first worksheet
+                    var worksheet = workbook.Worksheets.FirstOrDefault();
+                    if (worksheet == null)
+                    {
+                        return contacts;
+                    }
+
+                    // Get the range of cells with data
+                    var dataRange = worksheet.RangeUsed();
+                    if (dataRange == null)
+                    {
+                        return contacts;
+                    }
+
+                    // Get the headers from the first row
+                    var headerRow = dataRange.FirstRow();
+                    var headerIndexMap = new Dictionary<string, int>();
+
+                    // Map header names to column indices
+                    int colIndex = 0;
+                    foreach (var cell in headerRow.Cells())
+                    {
+                        string headerName = cell.Value.ToString().Trim().ToLowerInvariant();
+                        headerIndexMap[headerName] = colIndex;
+                        colIndex++;
+                    }
+
+                    // Process data rows (skip header row)
+                    for (int rowIndex = 2; rowIndex <= dataRange.LastRow().RowNumber(); rowIndex++)
+                    {
+                        var row = worksheet.Row(rowIndex);
+
+                        var contact = new EmployeeContactDto();
+
+                        // Map Excel fields to DTO properties
+                        if (headerIndexMap.TryGetValue("fullname", out int fullNameIndex))
+                            contact.FullName = CleanField(row.Cell(fullNameIndex + 1).Value.ToString());
+
+                        if (headerIndexMap.TryGetValue("phone", out int phoneIndex))
+                            contact.Phone = CleanField(row.Cell(phoneIndex + 1).Value.ToString());
+
+                        if (headerIndexMap.TryGetValue("email", out int emailIndex))
+                            contact.Email = CleanField(row.Cell(emailIndex + 1).Value.ToString());
+
+                        if (headerIndexMap.TryGetValue("title", out int titleIndex))
+                            contact.Title = CleanField(row.Cell(titleIndex + 1).Value.ToString());
+
+                        if (headerIndexMap.TryGetValue("company", out int companyIndex))
+                            contact.Company = CleanField(row.Cell(companyIndex + 1).Value.ToString());
+
+                        if (headerIndexMap.TryGetValue("linkedin", out int linkedinIndex))
+                            contact.LinkedIn = CleanField(row.Cell(linkedinIndex + 1).Value.ToString());
+
+                        contacts.Add(contact);
+                    }
+                }
+            }
+
+            return contacts;
+        }
+
+        private string CleanField(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+                return string.Empty;
+
+            // Remove quotes and trim whitespace
+            value = value.Trim().Trim('"', '\'');
+
+            // Check if it's the literal "string" placeholder
+            if (value.Trim().ToLowerInvariant() == "string")
+                return string.Empty;
+
+            return value;
+        }
+
+        private string GetImportResultMessage(int successCount, int failureCount)
+        {
+            if (successCount > 0 && failureCount == 0)
+                return $"Successfully imported {successCount} contacts.";
+            else if (successCount > 0 && failureCount > 0)
+                return $"Imported {successCount} contacts successfully with {failureCount} failures.";
+            else
+                return $"Failed to import any contacts. {failureCount} contacts had validation errors.";
+        }      
     }
 }
