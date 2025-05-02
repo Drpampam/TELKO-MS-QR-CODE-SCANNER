@@ -1,7 +1,7 @@
 using Application.Extensions;
 using Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Persistence.Confgurations;
+using Persistence.Configurations;
 using Persistence.Extensions.Persistence;
 using Persistence.Extensions.Repository;
 using Serilog;
@@ -68,16 +68,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseSwagger();
-
-app.UseSwaggerUI();
+app.UseHttpsRedirection();
 
 app.UseCors();
-app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Configure the port
+app.Urls.Add("http://localhost:5159");
 
 app.Run();
 

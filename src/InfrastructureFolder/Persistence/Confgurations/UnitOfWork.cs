@@ -1,7 +1,8 @@
 ﻿using Application.Interfaces;
 using Persistence.Repositories;
+using Persistence.Configurations;
 
-namespace Persistence.Confgurations
+namespace Persistence.Configurations
 {
     public class UnitOfWork : IUnitOfWork
     {

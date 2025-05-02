@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Application.Interfaces;
 using System.Linq.Expressions;
-using Persistence.Confgurations;
+using Persistence.Configurations;
 
 namespace Persistence.Repositories
 {

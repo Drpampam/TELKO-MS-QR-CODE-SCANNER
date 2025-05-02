@@ -1,0 +1,36 @@
+@page
+@model WebUI.Pages.Contacts.QRCodeModel
+@{
+    ViewData["Title"] = "QR Code";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center">QR Code</h2>
+                </div>
+                <div class="card-body text-center">
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @Model.ErrorMessage
+                        </div>
+                    }
+                    else if (Model.QRCodeBytes != null)
+                    {
+                        <img src="data:image/png;base64,@Convert.ToBase64String(Model.QRCodeBytes)" 
+                             alt="QR Code" class="img-fluid mb-3" style="max-width: 300px;" />
+                        <div class="mt-3">
+                            <a href="@Url.Page("QRCode", "Download", new { phone = Request.Query["phone"] })" 
+                               class="btn btn-primary">
+                                Download QR Code
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

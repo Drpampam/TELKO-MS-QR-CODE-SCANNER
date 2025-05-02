@@ -1,0 +1,67 @@
+@page
+@model WebUI.Pages.Contacts.CreateModel
+@{
+    ViewData["Title"] = "Add New Contact";
+}
+
+<div class="container mt-2">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card">
+                <div class="card-header py-2">
+                    <h4 class="text-center mb-0">Add New Contact</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger small"></div>
+                        
+                        <div class="mb-2">
+                            <label asp-for="Contact.FullName" class="form-label small">Full Name</label>
+                            <input asp-for="Contact.FullName" class="form-control form-control-sm" />
+                            <span asp-validation-for="Contact.FullName" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-2">
+                            <label asp-for="Contact.Phone" class="form-label small">Phone Number</label>
+                            <input asp-for="Contact.Phone" class="form-control form-control-sm" />
+                            <span asp-validation-for="Contact.Phone" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-2">
+                            <label asp-for="Contact.Email" class="form-label small">Email</label>
+                            <input asp-for="Contact.Email" class="form-control form-control-sm" />
+                            <span asp-validation-for="Contact.Email" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-2">
+                            <label asp-for="Contact.Title" class="form-label small">Title</label>
+                            <input asp-for="Contact.Title" class="form-control form-control-sm" />
+                            <span asp-validation-for="Contact.Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-2">
+                            <label asp-for="Contact.Company" class="form-label small">Company</label>
+                            <input asp-for="Contact.Company" class="form-control form-control-sm" />
+                            <span asp-validation-for="Contact.Company" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Contact.LinkedIn" class="form-label small">LinkedIn Profile</label>
+                            <input asp-for="Contact.LinkedIn" class="form-control form-control-sm" />
+                            <span asp-validation-for="Contact.LinkedIn" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Create</button>
+                            <a asp-page="/Index" class="btn btn-secondary btn-sm">Back to List</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

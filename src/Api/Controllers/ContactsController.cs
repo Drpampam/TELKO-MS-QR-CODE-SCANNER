@@ -138,7 +138,7 @@ namespace Api.Controllers
         /// <response code="200">Contacts retrieved successfully.</response>
         /// <response code="400">Invalid filter criteria.</response>
         /// <response code="500">Server error while retrieving contacts.</response>
-        [HttpGet("all-contacts")]
+        [HttpPost("all-contacts")]
         [SwaggerOperation(Summary = "Gets all employee contact details")]
         [ProducesResponseType(typeof(BaseResponse<EmployeeContactReponseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(BaseResponse<string>), StatusCodes.Status400BadRequest)]

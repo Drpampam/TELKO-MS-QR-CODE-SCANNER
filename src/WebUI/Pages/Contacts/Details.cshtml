@@ -1,0 +1,51 @@
+@page
+@model WebUI.Pages.Contacts.DetailsModel
+@{
+    ViewData["Title"] = "Contact Details";
+}
+
+<div class="container mt-4">
+    @if (Model.Contact == null)
+    {
+        <div class="alert alert-danger">
+            Contact not found.
+        </div>
+        <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-header">
+                <h2>Contact Details</h2>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Full Name</dt>
+                    <dd class="col-sm-9">@Model.Contact.FullName</dd>
+
+                    <dt class="col-sm-3">Phone</dt>
+                    <dd class="col-sm-9">@Model.Contact.Phone</dd>
+
+                    <dt class="col-sm-3">Email</dt>
+                    <dd class="col-sm-9">@Model.Contact.Email</dd>
+
+                    <dt class="col-sm-3">Title</dt>
+                    <dd class="col-sm-9">@Model.Contact.Title</dd>
+
+                    <dt class="col-sm-3">Company</dt>
+                    <dd class="col-sm-9">@Model.Contact.Company</dd>
+
+                    <dt class="col-sm-3">LinkedIn</dt>
+                    <dd class="col-sm-9">
+                        <a href="@Model.Contact.LinkedIn" target="_blank">@Model.Contact.LinkedIn</a>
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer">
+                <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+                <a asp-page="./QRCode" asp-route-phone="@Model.Contact.Phone" class="btn btn-success">View QR Code</a>
+                <a asp-page="./VCard" asp-route-phone="@Model.Contact.Phone" class="btn btn-info">Download VCard</a>
+            </div>
+        </div>
+    }
+</div> 
