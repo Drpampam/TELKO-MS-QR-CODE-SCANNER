@@ -17,6 +17,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllersWithViews();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -50,6 +51,7 @@ builder.Services.AddCors(options =>
 
 
 });
+
 
 builder.Services.Configure<EmployeeContactDefaultsOptions>(
     builder.Configuration.GetSection("EmployeeContactDefaults"));
