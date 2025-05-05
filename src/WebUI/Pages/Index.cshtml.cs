@@ -30,7 +30,7 @@ namespace WebUI.Pages
             try
             {
                 var response = await _employeeContactService.GetContactsAsync(Phone, StartDate, EndDate);
-                if (response.IsSuccess && response.Data != null)
+                if (response.Success && response.Data != null)
                 {
                     Contacts = response.Data;
                 }

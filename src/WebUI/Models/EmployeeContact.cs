@@ -2,34 +2,57 @@ using System.ComponentModel.DataAnnotations;
 
 namespace WebUI.Models
 {
+    /// <summary>
+    /// Represents an employee contact in the system
+    /// </summary>
     public class EmployeeContact
     {
-        public required string Id { get; set; }
+        /// <summary>
+        /// Gets or sets the unique identifier for the contact
+        /// </summary>
+        public int Id { get; set; }
 
-        [Required(ErrorMessage = "Full Name is required")]
-        [Display(Name = "Full Name")]
-        public required string FullName { get; set; }
+        /// <summary>
+        /// Gets or sets the full name of the employee
+        /// </summary>
+        [Required(ErrorMessage = "Full name is required")]
+        [StringLength(100, ErrorMessage = "Full name cannot exceed 100 characters")]
+        public string FullName { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Phone is required")]
-        [Display(Name = "Phone")]
-        public required string Phone { get; set; }
+        /// <summary>
+        /// Gets or sets the phone number of the employee
+        /// </summary>
+        [Required(ErrorMessage = "Phone number is required")]
+        [RegularExpression(@"^\+?[1-9]\d{1,14}$", ErrorMessage = "Phone number must be a valid international format")]
+        public string Phone { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid Email Address")]
-        [Display(Name = "Email")]
-        public required string Email { get; set; }
+        /// <summary>
+        /// Gets or sets the email address of the employee
+        /// </summary>
+        [Required(ErrorMessage = "Email address is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address format")]
+        [StringLength(100, ErrorMessage = "Email address cannot exceed 100 characters")]
+        public string Email { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Gets or sets the job title of the employee
+        /// </summary>
         [Required(ErrorMessage = "Title is required")]
-        [Display(Name = "Title")]
-        public required string Title { get; set; }
+        [StringLength(100, ErrorMessage = "Title cannot exceed 100 characters")]
+        public string Title { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Company is required")]
-        [Display(Name = "Company")]
-        public required string Company { get; set; }
+        /// <summary>
+        /// Gets or sets the company name
+        /// </summary>
+        [Required(ErrorMessage = "Company name is required")]
+        [StringLength(100, ErrorMessage = "Company name cannot exceed 100 characters")]
+        public string Company { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "LinkedIn URL is required")]
-        [Url(ErrorMessage = "Invalid URL")]
-        [Display(Name = "LinkedIn URL")]
-        public required string LinkedIn { get; set; }
+        /// <summary>
+        /// Gets or sets the LinkedIn profile URL
+        /// </summary>
+        [Url(ErrorMessage = "LinkedIn URL must be a valid URL")]
+        [StringLength(200, ErrorMessage = "LinkedIn URL cannot exceed 200 characters")]
+        public string? LinkedIn { get; set; }
     }
 } 

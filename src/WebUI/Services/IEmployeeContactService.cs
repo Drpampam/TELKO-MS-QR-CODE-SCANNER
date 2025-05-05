@@ -8,5 +8,7 @@ namespace WebUI.Services
         Task<ApiResponse<EmployeeContact>> GetContactByPhoneAsync(string phone);
         Task<ApiResponse<byte[]>> GetQRCodeAsync(string phone);
         Task<ApiResponse<EmployeeContact>> CreateContactAsync(EmployeeContact contact);
+        Task<ApiResponse<byte[]>> GetVCardAsync(string phone);
+        Task<ApiResponse<bool>> AddContactAsync(EmployeeContact contact);
     }
 } 

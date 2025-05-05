@@ -24,7 +24,7 @@ namespace WebUI.Pages.Contacts
             }
 
             var response = await _contactService.GetContactByPhoneAsync(phone);
-            if (!response.IsSuccess || response.Data == null)
+            if (!response.Success || response.Data == null)
             {
                 return NotFound();
             }

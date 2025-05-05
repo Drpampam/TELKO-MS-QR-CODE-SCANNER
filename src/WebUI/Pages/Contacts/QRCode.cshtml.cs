@@ -27,7 +27,7 @@ namespace WebUI.Pages.Contacts
             try
             {
                 var response = await _contactService.GetQRCodeAsync(phone);
-                if (!response.IsSuccess || response.Data == null)
+                if (!response.Success || response.Data == null)
                 {
                     ErrorMessage = response.Message ?? "Failed to generate QR code";
                     return Page();
@@ -53,7 +53,7 @@ namespace WebUI.Pages.Contacts
             try
             {
                 var response = await _contactService.GetQRCodeAsync(phone);
-                if (!response.IsSuccess || response.Data == null)
+                if (!response.Success || response.Data == null)
                 {
                     return BadRequest(response.Message ?? "Failed to generate QR code");
                 }

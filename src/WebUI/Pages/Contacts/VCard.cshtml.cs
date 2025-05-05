@@ -20,13 +20,13 @@ namespace WebUI.Pages.Contacts
                 return NotFound();
             }
 
-            var vcardBytes = await _contactService.GetVCardAsync(phone);
-            if (vcardBytes == null)
+            var response = await _contactService.GetVCardAsync(phone);
+            if (!response.Success || response.Data == null)
             {
                 return NotFound();
             }
 
-            return File(vcardBytes, "text/vcard", $"{phone}.vcf");
+            return File(response.Data, "text/vcard", $"{phone}.vcf");
         }
     }
 } 

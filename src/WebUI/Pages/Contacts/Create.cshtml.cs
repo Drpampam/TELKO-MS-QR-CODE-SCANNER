@@ -29,13 +29,13 @@ namespace WebUI.Pages.Contacts
                 return Page();
             }
 
-            var success = await _contactService.AddContactAsync(Contact);
-            if (success)
+            var response = await _contactService.AddContactAsync(Contact);
+            if (response.Success)
             {
                 return RedirectToPage("/Index");
             }
 
-            ModelState.AddModelError("", "Failed to create contact. Please try again.");
+            ModelState.AddModelError("", response.Message ?? "Failed to create contact. Please try again.");
             return Page();
         }
     }
