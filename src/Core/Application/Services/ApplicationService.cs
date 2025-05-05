@@ -205,14 +205,7 @@ namespace Application.Services
                     _logger.LogInformation($"Filtering between {dateFilter.StartDate} and {dateFilter.EndDate}");
                     requests = requests.Where(x =>
                         x.CreatedAt >= dateFilter.StartDate && x.CreatedAt <= dateFilter.EndDate);
-                }
-                else
-                {
-                    var todayStart = DateTime.Today;
-                    var todayEnd = DateTime.Today.AddDays(1).AddTicks(-1); // End of today's date
-                    _logger.LogInformation($"Filtering for today's date: {todayStart} to {todayEnd}");
-                    requests = requests.Where(x => x.CreatedAt >= todayStart && x.CreatedAt <= todayEnd);
-                }
+                }          
 
                 var result = await requests.OrderByDescending(x => x.CreatedAt)
                     .PaginateAsync(filter!.PageNumber, filter.PageSize);

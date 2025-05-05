@@ -13,62 +13,54 @@ namespace WebUI.Services
         {
             _httpClient = httpClient;
             _apiSettings = apiSettings.Value;
-            _httpClient.BaseAddress = new Uri(_apiSettings.BaseUrl ?? "http://localhost:5159");
+            _httpClient.BaseAddress = new Uri(_apiSettings.BaseUrl ?? "http://localhost:5156");
         }
 
-        public async Task<ApiResponse<List<EmployeeContact>>> GetContactsAsync(string? phone = null, string? startDate = null, string? endDate = null)
+        public async Task<List<EmployeeContact>> GetAllContactsAsync()
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("/api/v1/contacts/all-contacts", new { phone, startDate, endDate });
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/contacts/all-contacts", new { });
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<ApiResponse<List<EmployeeContact>>>() ?? new ApiResponse<List<EmployeeContact>> { IsSuccess = false, Message = "Failed to deserialize response" };
+                var result = await response.Content.ReadFromJsonAsync<BaseResponse<List<EmployeeContact>>>();
+                return result?.Data ?? new List<EmployeeContact>();
             }
             catch (Exception ex)
             {
-                return new ApiResponse<List<EmployeeContact>> { IsSuccess = false, Message = $"Error getting contacts: {ex.Message}" };
+                Console.WriteLine($"Error getting contacts: {ex.Message}");
+                return new List<EmployeeContact>();
             }
         }
 
-        public async Task<ApiResponse<EmployeeContact>> GetContactByPhoneAsync(string phone)
+        public async Task<EmployeeContact?> GetContactByPhoneAsync(string phone)
         {
             try
             {
                 var response = await _httpClient.GetAsync($"/api/v1/contacts/{phone}/contact-details");
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<ApiResponse<EmployeeContact>>() ?? new ApiResponse<EmployeeContact> { IsSuccess = false, Message = "Failed to deserialize response" };
+                var result = await response.Content.ReadFromJsonAsync<BaseResponse<EmployeeContact>>();
+                return result?.Data;
             }
             catch (Exception ex)
             {
-                return new ApiResponse<EmployeeContact> { IsSuccess = false, Message = $"Error getting contact: {ex.Message}" };
+                Console.WriteLine($"Error getting contact: {ex.Message}");
+                return null;
             }
         }
 
-        public async Task<ApiResponse<byte[]>> GetQRCodeAsync(string phone)
+        public async Task<byte[]?> GetQRCodeAsync(string phone)
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/v1/qrcode/{phone}/qrcode");
+                var response = await _httpClient.PostAsync($"/api/v1/qrcode/{phone}/qrcode", null);
                 response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<ApiResponse<byte[]>>() ?? new ApiResponse<byte[]> { IsSuccess = false, Message = "Failed to deserialize response" };
+                var result = await response.Content.ReadFromJsonAsync<BaseResponse<byte[]>>();
+                return result?.Data;
             }
             catch (Exception ex)
             {
-                return new ApiResponse<byte[]> { IsSuccess = false, Message = $"Error getting QR code: {ex.Message}" };
-            }
-        }
-
-        public async Task<ApiResponse<EmployeeContact>> CreateContactAsync(EmployeeContact contact)
-        {
-            try
-            {
-                var response = await _httpClient.PostAsJsonAsync("/api/v1/contacts", contact);
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadFromJsonAsync<ApiResponse<EmployeeContact>>() ?? new ApiResponse<EmployeeContact> { IsSuccess = false, Message = "Failed to deserialize response" };
-            }
-            catch (Exception ex)
-            {
-                return new ApiResponse<EmployeeContact> { IsSuccess = false, Message = $"Error creating contact: {ex.Message}" };
+                Console.WriteLine($"Error getting QR code: {ex.Message}");
+                return null;
             }
         }
 
@@ -76,28 +68,12 @@ namespace WebUI.Services
         {
             try
             {
-                var request = new
-                {
-                    fullName = contact.FullName,
-                    phone = contact.Phone,
-                    email = contact.Email,
-                    title = contact.Title,
-                    company = contact.Company,
-                    linkedIn = contact.LinkedIn
-                };
-
-                var response = await _httpClient.PostAsJsonAsync("/api/v1/Contacts", request);
-                if (!response.IsSuccessStatusCode)
-                {
-                    var errorResponse = await response.Content.ReadFromJsonAsync<BaseResponse<string>>();
-                    Console.WriteLine($"Error adding contact: {errorResponse?.Message}");
-                    return false;
-                }
+                var response = await _httpClient.PostAsJsonAsync("/api/v1/contacts", contact);
+                response.EnsureSuccessStatusCode();
                 return true;
             }
             catch (Exception ex)
             {
-                // Log the error
                 Console.WriteLine($"Error adding contact: {ex.Message}");
                 return false;
             }
@@ -120,6 +96,26 @@ namespace WebUI.Services
                 Console.WriteLine($"Error getting vCard: {ex.Message}");
                 return null;
             }
+        }
+
+        public Task<ApiResponse<List<EmployeeContact>>> GetContactsAsync(string? phone = null, string? startDate = null, string? endDate = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<ApiResponse<EmployeeContact>> IEmployeeContactService.GetContactByPhoneAsync(string phone)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<ApiResponse<byte[]>> IEmployeeContactService.GetQRCodeAsync(string phone)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ApiResponse<EmployeeContact>> CreateContactAsync(EmployeeContact contact)
+        {
+            throw new NotImplementedException();
         }
     }
 

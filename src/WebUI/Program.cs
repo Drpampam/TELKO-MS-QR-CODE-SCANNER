@@ -5,11 +5,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IEmployeeContactService, EmployeeContactService>();
-
-// Configure API base URL
-builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
 
 var app = builder.Build();
 
