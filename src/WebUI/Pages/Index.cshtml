@@ -5,40 +5,39 @@
 }
 
 <div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col">
-            <h2>Employee Contacts</h2>
-        </div>
-        <div class="col text-end">
-            <a asp-page="/Contacts/Create" class="btn btn-primary">Add New Contact</a>
-        </div>
+
+    <div class="header-section d-flex justify-content-between align-items-center mb-4 p-3 rounded">
+        <h2 class="header-title text-white">Employee Contacts</h2>
+        <a asp-page="/Contacts/Create" class="btn btn-primary add-contact-btn">Add New Contact</a>
     </div>
 
+    <!-- Filter Card -->
     <div class="card mb-4">
         <div class="card-body">
             <form method="get" class="row g-3">
                 <div class="col-md-3">
-                    <label for="phone" class="form-label">Phone Number</label>
+                    <h6><label for="phone" class="form-label">Phone Number</label></h6>
                     <input type="text" class="form-control" id="phone" name="phone" value="@Model.Phone">
                 </div>
                 <div class="col-md-3">
-                    <label for="startDate" class="form-label">Start Date</label>
+                    <h6><label for="startDate" class="form-label">Start Date</label></h6>
                     <input type="date" class="form-control" id="startDate" name="startDate" value="@Model.StartDate">
                 </div>
                 <div class="col-md-3">
-                    <label for="endDate" class="form-label">End Date</label>
+                    <h6><label for="endDate" class="form-label">End Date</label></h6>
                     <input type="date" class="form-control" id="endDate" name="endDate" value="@Model.EndDate">
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <button type="submit" class="btn btn-primary add-contact-btn">Filter</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Data Table -->
     <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
+        <table class="table table-hover table-bordered modern-table">
+            <thead class="table-light">
                 <tr>
                     <th>Full Name</th>
                     <th>Phone</th>
@@ -46,12 +45,17 @@
                     <th>Title</th>
                     <th>Company</th>
                     <th>Actions</th>
+                    @*  <th><a href="?sortField=Id" class="sort-link">ID</a></th>
+                    <th><a href="?sortField=FullName" class="sort-link">Name</a></th>
+                    <th><a href="?sortField=Country" class="sort-link">Country</a></th>
+                    <th><a href="?sortField=HiredDate" class="sort-link">Hired</a></th>
+                    <th>Actions</th> *@
                 </tr>
             </thead>
             <tbody>
                 @foreach (var contact in Model.Contacts)
                 {
-                    <tr>
+                    <tr class="clickable-row" data-url="@Url.Page("/Contacts/Details", new { id = contact.Phone })">
                         <td>@contact.FullName</td>
                         <td>@contact.Phone</td>
                         <td>@contact.Email</td>
@@ -59,6 +63,7 @@
                         <td>@contact.Company</td>
                         <td>
                             <div class="btn-group">
+                                <!-- Uniform button size with btn-sm -->
                                 <a asp-page="/Contacts/Details" asp-route-phone="@contact.Phone" class="btn btn-sm btn-info">Details</a>
                                 <a asp-page="/Contacts/QRCode" asp-route-phone="@contact.Phone" class="btn btn-sm btn-success">QR Code</a>
                             </div>
@@ -69,3 +74,130 @@
         </table>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Clickable row logic
+        document.querySelectorAll('.clickable-row').forEach(row => {
+            row.addEventListener('click', () => {
+                window.location = row.dataset.url;
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .add-contact-btn {
+            padding: 0.35rem 0.8rem;
+            font-size: 0.80rem;
+            border-radius: 20px;
+            min-width: 120px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+            .add-contact-btn:hover {
+                background-color: #004a99;
+                transform: scale(1.05);
+            }
+
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: none;
+        }
+
+        .btn-custom {
+            padding: 0.4rem 0.9rem;
+            font-size: 0.85rem;
+            border-radius: 25px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        .btn-wide {
+            min-width: 100px;
+        }
+
+        .btn-primary {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+
+        /* Hover effect for Add Contact and Filter */
+        .btn-hover:hover {
+            background-color: #004a99;
+            transform: scale(1.05);
+        }
+
+        .btn-group .btn:hover {
+            transform: scale(1.05);
+            transition: all 0.2s ease-in-out;
+        }
+
+        /* Modern Table Style */
+        .modern-table {
+            border-collapse: separate;
+            border-spacing: 0 0.4rem;
+        }
+
+            .modern-table th {
+                font-weight: 600;
+                background-color: #e9ecef;
+                border: none;
+            }
+
+            .modern-table td {
+                background-color: #fff;
+                border-top: none;
+                border-bottom: 2px solid #dee2e6;
+            }
+
+            .modern-table tbody tr:hover {
+                background-color: #e6f0ff;
+                cursor: pointer;
+            }
+
+        .table-bordered > :not(caption) > * > * {
+            border-width: 0 0 2px;
+        }
+
+        /* Clickable row style */
+        .clickable-row {
+            transition: background-color 0.2s ease-in-out;
+        }
+
+            .clickable-row:hover {
+                background-color: #d9ecff !important;
+            }
+
+        /* Sort link style */
+        .sort-link {
+            text-decoration: none;
+            color: #0056b3;
+            font-weight: 600;
+        }
+
+            .sort-link:hover {
+                text-decoration: underline;
+            }
+
+        /* Deep Creamy Blue Header */
+        .header-section {
+            background-color: #001f3f; /* Deep creamy blue */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-title {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+        }
+
+    </style>
+}
