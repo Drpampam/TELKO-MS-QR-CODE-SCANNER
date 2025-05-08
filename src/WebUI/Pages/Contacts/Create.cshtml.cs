@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using WebUI.Models;
+using WebUI.DTOs;
 using WebUI.Services;
 
 namespace WebUI.Pages.Contacts
 {
     public class CreateModel : PageModel
     {
-        private readonly EmployeeContactService _contactService;
+        private readonly IEmployeeContactService _contactService;
 
-        public CreateModel(EmployeeContactService contactService)
+        // Inject IEmployeeContactService instead of concrete class EmployeeContactService
+        public CreateModel(IEmployeeContactService contactService)
         {
             _contactService = contactService;
         }
@@ -39,4 +40,4 @@ namespace WebUI.Pages.Contacts
             return Page();
         }
     }
-} 
+}

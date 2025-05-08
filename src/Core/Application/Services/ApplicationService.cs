@@ -186,7 +186,7 @@ namespace Application.Services
             }
         }
 
-        public async Task<BaseResponse<PaginationResult<EmployeeContactReponseDto>>> GetAllContacts(GetAllContacts filter = null!)
+        public async Task<BaseResponse<PaginationResult<EmployeeContactReponseDto>>> GetAllContactsV2(GetAllContacts filter = null!)
         {
             try
             {
@@ -207,7 +207,7 @@ namespace Application.Services
                         x.CreatedAt >= dateFilter.StartDate && x.CreatedAt <= dateFilter.EndDate);
                 }          
 
-                var result = await requests.OrderByDescending(x => x.CreatedAt)
+                var result = await requests.OrderByDescending(x => x.Id)
                     .PaginateAsync(filter!.PageNumber, filter.PageSize);
 
                 var logResponse = JsonSerializer.Serialize(result);
@@ -241,6 +241,79 @@ namespace Application.Services
                $"Retrieved page {filter?.PageNumber ?? 1} of requests successfully",
                pagedResponse,
                ResponseCodes.SUCCESS);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching file details.");
+                return new BaseResponse<PaginationResult<EmployeeContactReponseDto>>
+                {
+                    Message = "An error occurred while fetching file details.",
+                    ResponseCode = ResponseCodes.FAILURE
+                };
+            }
+        }
+
+        public async Task<BaseResponse<PaginationResult<EmployeeContactReponseDto>>> GetAllContacts(GetAllContacts? filter = null)
+        {
+            try
+            {
+                filter ??= new GetAllContacts(); // Ensure it's not null
+
+                var logRequest = JsonSerializer.Serialize(filter);
+                _logger.LogInformation(logRequest);
+
+                var dateFilter = new FilterDateConvert();
+                filter.MapToFilterDateConvert(dateFilter);
+
+                var requests = await _repository.WhereQueryable(x => x != null);
+
+                if (!string.IsNullOrEmpty(filter.Phone))
+                    requests = requests.Where(x => x.Phone == filter.Phone);
+
+                if (filter.StartDate != null && filter.EndDate != null)
+                {
+                    _logger.LogInformation($"Filtering between {dateFilter.StartDate} and {dateFilter.EndDate}");
+                    requests = requests.Where(x =>
+                        x.CreatedAt >= dateFilter.StartDate && x.CreatedAt <= dateFilter.EndDate);
+                }
+
+                var result = await requests.OrderByDescending(x => x.Id)
+                    .PaginateAsync(filter.PageNumber, filter.PageSize);
+
+                var logResponse = JsonSerializer.Serialize(result);
+                _logger.LogInformation(logResponse);
+
+                if (result.Items == null || !result.Items.Any())
+                {
+                    return new BaseResponse<PaginationResult<EmployeeContactReponseDto>>
+                    {
+                        Message = "No record found",
+                        ResponseCode = ResponseCodes.NOT_FOUND
+                    };
+                }
+
+                var files = new List<EmployeeContactReponseDto>();
+                foreach (var request in result.Items)
+                {
+                    var requestDto = new EmployeeContactReponseDto();
+                    requestDto.ConvertToDto(request);
+                    files.Add(requestDto);
+                }
+
+                var pagedResponse = new PaginationResult<EmployeeContactReponseDto>(
+                    files.AsQueryable(),
+                    filter.PageNumber,
+                    filter.PageSize,
+                    result.TotalCount,
+                    result.TotalPages);
+
+                var logResult = JsonSerializer.Serialize(pagedResponse);
+                _logger.LogInformation(logResult);
+
+                return new BaseResponse<PaginationResult<EmployeeContactReponseDto>>(
+                    $"Retrieved page {filter.PageNumber} of requests successfully",
+                    pagedResponse,
+                    ResponseCodes.SUCCESS);
             }
             catch (Exception ex)
             {

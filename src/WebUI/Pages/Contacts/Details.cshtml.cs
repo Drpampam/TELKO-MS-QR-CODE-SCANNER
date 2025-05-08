@@ -1,15 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using WebUI.Models;
+using WebUI.DTOs;
 using WebUI.Services;
 
 namespace WebUI.Pages.Contacts
 {
     public class DetailsModel : PageModel
     {
-        private readonly EmployeeContactService _contactService;
+        private readonly IEmployeeContactService _contactService;
 
-        public DetailsModel(EmployeeContactService contactService)
+        // Inject IEmployeeContactService instead of the concrete class
+        public DetailsModel(IEmployeeContactService contactService)
         {
             _contactService = contactService;
         }
@@ -24,7 +25,7 @@ namespace WebUI.Pages.Contacts
             }
 
             var response = await _contactService.GetContactByPhoneAsync(phone);
-            if (!response.Success || response.Data == null)
+            if (response.Data == null)
             {
                 return NotFound();
             }
@@ -33,4 +34,4 @@ namespace WebUI.Pages.Contacts
             return Page();
         }
     }
-} 
+}

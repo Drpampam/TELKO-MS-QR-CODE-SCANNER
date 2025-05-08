@@ -1,16 +1,19 @@
+using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using WebUI.Models;
+using WebUI.DTOs;
 
 namespace WebUI.Services
 {
     public class EmployeeContactService : IEmployeeContactService
     {
         private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly string _baseUrl;
         private readonly ILogger<EmployeeContactService> _logger;
 
-        public EmployeeContactService(HttpClient httpClient, IConfiguration configuration, ILogger<EmployeeContactService> logger)
+        public EmployeeContactService(HttpClient httpClient, IConfiguration configuration, ILogger<EmployeeContactService> logger, IHttpClientFactory httpClientFactory)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _baseUrl = configuration["ApiSettings:BaseUrl"] ?? throw new ArgumentNullException("ApiSettings:BaseUrl is not configured");
@@ -22,26 +25,49 @@ namespace WebUI.Services
             }
 
             _httpClient.BaseAddress = new Uri(_baseUrl);
+            _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<ApiResponse<List<EmployeeContact>>> GetContactsAsync(string? phone = null, string? startDate = null, string? endDate = null)
+        public async Task<DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>> GetContactsAsync(string? phone , string? startDate, string? endDate )
         {
             try
             {
                 var response = await _httpClient.PostAsync($"/api/v1/contacts/all-contacts", null);
                 response.EnsureSuccessStatusCode();
-                
-                var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<EmployeeContact>>>();
-                return result ?? new ApiResponse<List<EmployeeContact>> { Success = false, Message = "Failed to get contacts" };
+
+                var result = await response.Content.ReadFromJsonAsync<DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>>();
+                if(result.Data == null)
+                {
+                    return new DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>
+                    {
+                        ResponseCode = "99",
+                        Message = "Failed to get contacts"
+                    };
+                }
+
+                var res = new DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>()
+                {
+                    ResponseCode = result.ResponseCode,
+                    Message = result.Message,
+                    Success = true,
+                    Data = result.Data
+                };
+                return res;
+             
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting contacts");
-                return new ApiResponse<List<EmployeeContact>> { Success = false, Message = $"Error getting contacts: {ex.Message}" };
+                return new DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>
+                {
+                    ResponseCode = "99",
+                    Message = $"Error getting contacts: {ex.Message}"
+                };
             }
         }
+        
 
-        public async Task<ApiResponse<EmployeeContact>> GetContactByPhoneAsync(string phone)
+        public async Task<DTOs.ApiResponse<EmployeeContact>> GetContactByPhoneAsync(string phone)
         {
             try
             {
@@ -74,6 +100,57 @@ namespace WebUI.Services
                 return new ApiResponse<byte[]> { Success = false, Message = $"Error getting QR code: {ex.Message}" };
             }
         }
+
+        public async Task<ApiResponse<byte[]>> GetQRCodeAsyncV2(string phone)
+        {
+            try
+            {
+                var client = _httpClientFactory.CreateClient();
+
+                // Set BaseAddress if not set
+                if (client.BaseAddress == null)
+                {
+                    client.BaseAddress = new Uri(_baseUrl); // Base URL from configuration
+                }
+
+                var response = await client.PostAsync($"api/v1/QRCode/{phone}/qrcode", null);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // ? Success — read image as bytes
+                    var byteArray = await response.Content.ReadAsByteArrayAsync();
+                    return new ApiResponse<byte[]>
+                    {
+                        Success = true,
+                        Data = byteArray
+                    };
+                }
+                else
+                {
+                    // ? Failure — read error JSON
+                    var errorJson = await response.Content.ReadAsStringAsync();
+                    var errorResponse = JsonSerializer.Deserialize<ApiResponse<string>>(errorJson, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                    return new ApiResponse<byte[]>
+                    {
+                        Success = false,
+                        Message = errorResponse?.Message ?? "Failed to generate QR code"
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new ApiResponse<byte[]>
+                {
+                    Success = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
 
         public async Task<ApiResponse<EmployeeContact>> CreateContactAsync(EmployeeContact contact)
         {

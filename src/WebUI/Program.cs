@@ -1,12 +1,21 @@
 using WebUI.Services;
 using WebUI.Models;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.Configure<ApiSettings>(builder.Configuration.GetSection("ApiSettings"));
-builder.Services.AddHttpClient();
+
+// Configure HttpClient for EmployeeContactService with optional settings
+builder.Services.AddHttpClient<IEmployeeContactService, EmployeeContactService>((serviceProvider, client) =>
+{
+    var apiSettings = serviceProvider.GetRequiredService<IOptions<ApiSettings>>().Value;
+    client.BaseAddress = new Uri(apiSettings.BaseUrl); // Set BaseAddress from config
+});
+
+// Register EmployeeContactService
 builder.Services.AddScoped<IEmployeeContactService, EmployeeContactService>();
 
 var app = builder.Build();
@@ -15,7 +24,6 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -23,7 +31,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
 app.UseAuthorization();
 
 app.MapRazorPages();

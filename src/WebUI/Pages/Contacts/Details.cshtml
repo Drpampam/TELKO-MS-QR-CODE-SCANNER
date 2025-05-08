@@ -42,7 +42,10 @@
                 </dl>
             </div>
             <div class="card-footer">
-                <a asp-page="./Index" class="btn btn-secondary">Back to List</a>
+@*                 //<a href="@Url.Page("./Index")" class="btn btn-secondary">Back to List</a>
+ *@
+
+                <a asp-page="/Index" class="btn btn-secondary">Back to List</a>
                 <a asp-page="./QRCode" asp-route-phone="@Model.Contact.Phone" class="btn btn-success">View QR Code</a>
                 <a asp-page="./VCard" asp-route-phone="@Model.Contact.Phone" class="btn btn-info">Download VCard</a>
             </div>

@@ -6,9 +6,9 @@ namespace WebUI.Pages.Contacts
 {
     public class QRCodeModel : PageModel
     {
-        private readonly EmployeeContactService _contactService;
+        private readonly IEmployeeContactService _contactService;
 
-        public QRCodeModel(EmployeeContactService contactService)
+        public QRCodeModel(IEmployeeContactService contactService)
         {
             _contactService = contactService;
         }
@@ -26,8 +26,8 @@ namespace WebUI.Pages.Contacts
 
             try
             {
-                var response = await _contactService.GetQRCodeAsync(phone);
-                if (!response.Success || response.Data == null)
+                var response = await _contactService.GetQRCodeAsyncV2(phone);
+                if (response.Data == null)
                 {
                     ErrorMessage = response.Message ?? "Failed to generate QR code";
                     return Page();
@@ -52,8 +52,8 @@ namespace WebUI.Pages.Contacts
 
             try
             {
-                var response = await _contactService.GetQRCodeAsync(phone);
-                if (!response.Success || response.Data == null)
+                var response = await _contactService.GetQRCodeAsyncV2(phone);
+                if (response.Data == null)
                 {
                     return BadRequest(response.Message ?? "Failed to generate QR code");
                 }
@@ -66,4 +66,4 @@ namespace WebUI.Pages.Contacts
             }
         }
     }
-} 
+}

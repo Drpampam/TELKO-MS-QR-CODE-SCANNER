@@ -6,9 +6,9 @@ namespace WebUI.Pages.Contacts
 {
     public class VCardModel : PageModel
     {
-        private readonly EmployeeContactService _contactService;
+        private readonly IEmployeeContactService _contactService;
 
-        public VCardModel(EmployeeContactService contactService)
+        public VCardModel(IEmployeeContactService contactService)
         {
             _contactService = contactService;
         }
@@ -21,7 +21,7 @@ namespace WebUI.Pages.Contacts
             }
 
             var response = await _contactService.GetVCardAsync(phone);
-            if (!response.Success || response.Data == null)
+            if ( response.Data == null)
             {
                 return NotFound();
             }

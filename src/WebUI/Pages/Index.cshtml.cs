@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using WebUI.Models;
+using WebUI.DTOs;
 using WebUI.Services;
 
 namespace WebUI.Pages
@@ -32,7 +32,7 @@ namespace WebUI.Pages
                 var response = await _employeeContactService.GetContactsAsync(Phone, StartDate, EndDate);
                 if (response.Success && response.Data != null)
                 {
-                    Contacts = response.Data;
+                    Contacts = response.Data.Items;
                 }
                 else
                 {
