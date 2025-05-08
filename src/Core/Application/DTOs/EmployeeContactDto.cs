@@ -66,8 +66,8 @@ namespace Application.DTOs
 
         public void MapToFilterDateConvert(FilterDateConvert dto)
         {
-            dto.StartDate = HelperExtensions.ConvertToDateTimeV2(StartDate!);
-            dto.EndDate = HelperExtensions.ConvertToDateTimeV2(EndDate!);
+            dto.StartDate = HelperExtensions.ConvertToDateTime(StartDate!);
+            dto.EndDate = HelperExtensions.ConvertToDateTime(EndDate!);
         }
 
         public record FilterDateConvert

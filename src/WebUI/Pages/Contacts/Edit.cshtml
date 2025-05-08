@@ -1,0 +1,66 @@
+﻿@page
+@model WebUI.Pages.Contacts.EditModel
+@{
+    ViewData["Title"] = "Edit Contact";
+}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="card p-4" style="max-width: 500px; width: 100%;">
+        <h1 class="text-center mb-4">Edit Contact</h1>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <form method="post">
+            <div class="form-group">
+                <label for="FullName">Full Name</label>
+                <input type="text" id="FullName" class="form-control" asp-for="Contact.FullName" required />
+                <span asp-validation-for="Contact.FullName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Phone">Phone</label>
+                <input type="text" id="Phone" class="form-control" asp-for="Contact.Phone" readonly />
+                <span asp-validation-for="Contact.Phone" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Email">Email</label>
+                <input type="email" id="Email" class="form-control" asp-for="Contact.Email" required />
+                <span asp-validation-for="Contact.Email" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Title">Title</label>
+                <input type="text" id="Title" class="form-control" asp-for="Contact.Title" />
+                <span asp-validation-for="Contact.Title" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="Company">Company</label>
+                <input type="text" id="Company" class="form-control" asp-for="Contact.Company" />
+                <span asp-validation-for="Contact.Company" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-4">
+                <label for="LinkedIn">LinkedIn</label>
+                <input type="text" id="LinkedIn" class="form-control" asp-for="Contact.LinkedIn" />
+                <span asp-validation-for="Contact.LinkedIn" class="text-danger"></span>
+            </div>
+
+            <!-- Button Row -->
+            <div class="form-group d-flex justify-content-between">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="@Url.Page("/Contacts/Details", new { phone = Model.Contact.Phone })" class="btn btn-secondary">Back</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

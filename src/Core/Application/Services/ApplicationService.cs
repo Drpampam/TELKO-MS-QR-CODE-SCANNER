@@ -113,8 +113,8 @@ namespace Application.Services
                 }
 
                 // Check if the contact exists
-                var existingContactResponse = await GetContactDetailsByPhone(req.Phone);
-                if (existingContactResponse.ResponseCode != ResponseCodes.SUCCESS)
+                var existingContactResponse = await _repository.SingleOrDefaultAsync(x => x.Phone == req.Phone);
+                if (existingContactResponse == null)
                 {
                     return new BaseResponse<EmployeeContact>
                     {
@@ -123,18 +123,17 @@ namespace Application.Services
                     };
                 }
 
-                var employeeContact = new EmployeeContact();
-                req.ConvertFromDto(employeeContact);
+                req.ConvertFromDto(existingContactResponse);
 
                 // Update contact
-                var result = await _repository.UpdateAsync(employeeContact);
+                var result = await _repository.UpdateAsync(existingContactResponse);
                 await _unitOfWork.CommitChangesAsync();
 
                 return new BaseResponse<EmployeeContact>
                 {
                     ResponseCode = ResponseCodes.SUCCESS,
                     Message = "Contact updated successfully.",
-                    Data = employeeContact
+                    Data = existingContactResponse
                 };
             }
             catch (Exception ex)

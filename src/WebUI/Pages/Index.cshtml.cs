@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using WebUI.DTOs;
+using WebUI.DTOs.ContactRequestDtos;
 using WebUI.Services;
 
 namespace WebUI.Pages
@@ -29,8 +30,14 @@ namespace WebUI.Pages
         {
             try
             {
-                var response = await _employeeContactService.GetContactsAsync(Phone, StartDate, EndDate);
-                if (response.Success && response.Data != null)
+                var filter = new GetAllContacts
+                {
+                    Phone = Phone,
+                    StartDate = StartDate,
+                    EndDate = EndDate
+                };
+                var response = await _employeeContactService.GetContactsAsync(filter);
+                if (response.Data != null)
                 {
                     Contacts = response.Data.Items;
                 }

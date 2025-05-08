@@ -2,7 +2,9 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using WebUI.ApiClients;
 using WebUI.DTOs;
+using WebUI.DTOs.ContactRequestDtos;
 
 namespace WebUI.Services
 {
@@ -28,44 +30,28 @@ namespace WebUI.Services
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>> GetContactsAsync(string? phone , string? startDate, string? endDate )
+        public async Task<DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>> GetContactsAsync(GetAllContacts filter)
         {
-            try
-            {
-                var response = await _httpClient.PostAsync($"/api/v1/contacts/all-contacts", null);
-                response.EnsureSuccessStatusCode();
+            const string FailureCode = "99";
 
-                var result = await response.Content.ReadFromJsonAsync<DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>>();
-                if(result.Data == null)
-                {
-                    return new DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>
-                    {
-                        ResponseCode = "99",
-                        Message = "Failed to get contacts"
-                    };
-                }
+            var result = await _httpClient.PostJsonAsync<GetAllContacts, DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>>(
+                "/api/v1/contacts/all-contacts",
+                filter,
+                _logger);
 
-                var res = new DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>()
-                {
-                    ResponseCode = result.ResponseCode,
-                    Message = result.Message,
-                    Success = true,
-                    Data = result.Data
-                };
-                return res;
-             
-            }
-            catch (Exception ex)
+            if (result == null || result.Data == null)
             {
-                _logger.LogError(ex, "Error getting contacts");
                 return new DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>
                 {
-                    ResponseCode = "99",
-                    Message = $"Error getting contacts: {ex.Message}"
+                    ResponseCode = FailureCode,
+                    Message = "Failed to get contacts",
+                    Success = false
                 };
             }
+
+            result.Success = true;
+            return result;
         }
-        
 
         public async Task<DTOs.ApiResponse<EmployeeContact>> GetContactByPhoneAsync(string phone)
         {
@@ -151,7 +137,6 @@ namespace WebUI.Services
             }
         }
 
-
         public async Task<ApiResponse<EmployeeContact>> CreateContactAsync(EmployeeContact contact)
         {
             try
@@ -200,5 +185,36 @@ namespace WebUI.Services
                 return new ApiResponse<bool> { Success = false, Message = $"Error adding contact: {ex.Message}" };
             }
         }
+
+        public async Task<ApiResponse<bool>> UpdateContactAsync(EmployeeContact contact)
+        {
+            try
+            {
+                // Construct the correct URL for the PUT request
+                var url = "/api/v1/contacts";  // No need to include contact in the URL path
+
+                // Send the PUT request with the contact data as JSON in the body
+                var response = await _httpClient.PutAsJsonAsync(url, contact);
+
+                // Ensure the request was successful
+                response.EnsureSuccessStatusCode();
+
+                // If successful, return a successful ApiResponse
+                return new ApiResponse<bool> { Success = true, Data = true };
+            }
+            catch (Exception ex)
+            {
+                // Log any errors that occur during the request
+                _logger.LogError(ex, "Error updating contact");
+
+                // Return a failure ApiResponse with the error message
+                return new ApiResponse<bool> { Success = false, Message = $"Error updating contact: {ex.Message}" };
+            }
+        }
+
+
+
+
+
     }
 } 

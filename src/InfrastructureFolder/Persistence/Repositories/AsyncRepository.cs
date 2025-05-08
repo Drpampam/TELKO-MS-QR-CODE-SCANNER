@@ -2,6 +2,7 @@
 using Application.Interfaces;
 using System.Linq.Expressions;
 using Persistence.Configurations;
+using DocumentFormat.OpenXml.InkML;
 
 namespace Persistence.Repositories
 {
@@ -34,6 +35,7 @@ namespace Persistence.Repositories
 
         public async Task<TEntity> UpdateAsync(TEntity entity)
         {
+            Context.Entry(entity).State = EntityState.Modified;
             Context.Set<TEntity>().Update(entity);
             await Context.SaveChangesAsync();
             return entity;
