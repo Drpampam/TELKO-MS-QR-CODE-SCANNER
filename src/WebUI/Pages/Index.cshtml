@@ -2,14 +2,64 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Employee Contacts";
+
+    // Get uploaded phones from TempData (deserialize to list)
+    var uploadedPhones = TempData["UploadedPhones"] != null
+        ? System.Text.Json.JsonSerializer.Deserialize<List<string>>(TempData["UploadedPhones"].ToString()!)
+        : new List<string>();
 }
 
 <div class="container mt-4">
 
     <div class="header-section d-flex justify-content-between align-items-center mb-4 p-3 rounded">
         <h2 class="header-title text-white">Employee Contacts</h2>
-        <a asp-page="/Contacts/Create" class="btn btn-primary add-contact-btn">Add New Contact</a>
+        <div class="d-flex align-items-center">
+            <!-- File Upload Form -->
+            <form method="post" enctype="multipart/form-data" asp-page-handler="Upload" id="uploadForm">
+                <div class="mb-3">
+                    <input type="file" name="file" class="form-control" required />
+                </div>
+                <button type="submit" class="btn btn-primary" id="uploadButton">
+                    Upload
+                </button>
+
+                <div id="spinner" style="display:none; margin-top:10px;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Uploading...</span>
+                    </div>
+                    Uploading...
+                </div>
+            </form>
+
+            <!-- Existing Add New Contact Button -->
+            <a asp-page="/Contacts/Create" class="btn btn-primary add-contact-btn">Add New Contact</a>
+        </div>
     </div>
+
+    <!-- ✅ Upload Success Message -->
+    @if (TempData["UploadSuccess"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["UploadSuccess"]
+        </div>
+    }
+
+    @if (TempData["UploadErrors"] != null)
+    {
+        var errors = TempData["UploadErrors"] as List<string>;
+        if (errors != null && errors.Any())
+        {
+            <div class="alert alert-danger">
+                <strong>Upload failed with the following errors:</strong>
+                <ul>
+                    @foreach (var error in errors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+    }
 
     <!-- Filter Card -->
     <div class="card mb-4">
@@ -45,17 +95,16 @@
                     <th>Title</th>
                     <th>Company</th>
                     <th>Actions</th>
-                    @*  <th><a href="?sortField=Id" class="sort-link">ID</a></th>
-                    <th><a href="?sortField=FullName" class="sort-link">Name</a></th>
-                    <th><a href="?sortField=Country" class="sort-link">Country</a></th>
-                    <th><a href="?sortField=HiredDate" class="sort-link">Hired</a></th>
-                    <th>Actions</th> *@
                 </tr>
             </thead>
             <tbody>
                 @foreach (var contact in Model.Contacts)
                 {
-                    <tr class="clickable-row" data-url="@Url.Page("/Contacts/Details", new { id = contact.Phone })">
+                    // ✅ Highlight if phone is among newly uploaded
+                    var isNewlyUploaded = uploadedPhones.Contains(contact.Phone);
+                    var rowClass = isNewlyUploaded ? "clickable-row newly-uploaded" : "clickable-row";
+
+                    <tr class="@rowClass" data-url="@Url.Page("/Contacts/Details", new { id = contact.Phone })">
                         <td>@contact.FullName</td>
                         <td>@contact.Phone</td>
                         <td>@contact.Email</td>
@@ -63,7 +112,6 @@
                         <td>@contact.Company</td>
                         <td>
                             <div class="btn-group">
-                                <!-- Uniform button size with btn-sm -->
                                 <a asp-page="/Contacts/Details" asp-route-phone="@contact.Phone" class="btn btn-sm btn-info">Details</a>
                                 <a asp-page="/Contacts/QRCode" asp-route-phone="@contact.Phone" class="btn btn-sm btn-success">QR Code</a>
                             </div>
@@ -83,10 +131,21 @@
                 window.location = row.dataset.url;
             });
         });
+
+        document.getElementById('uploadForm').addEventListener('submit', function () {
+            // Show spinner
+            document.getElementById('spinner').style.display = 'block';
+
+            // Disable the upload button
+            document.getElementById('uploadButton').disabled = true;
+
+            // Optional: change button text
+            document.getElementById('uploadButton').innerText = 'Uploading...';
+        });
     </script>
 }
 
-@section Styles {
+@* @section Styles {
     <style>
         .add-contact-btn {
             padding: 0.35rem 0.8rem;
@@ -129,7 +188,6 @@
             border-color: #0056b3;
         }
 
-        /* Hover effect for Add Contact and Filter */
         .btn-hover:hover {
             background-color: #004a99;
             transform: scale(1.05);
@@ -140,7 +198,6 @@
             transition: all 0.2s ease-in-out;
         }
 
-        /* Modern Table Style */
         .modern-table {
             border-collapse: separate;
             border-spacing: 0 0.4rem;
@@ -167,7 +224,6 @@
             border-width: 0 0 2px;
         }
 
-        /* Clickable row style */
         .clickable-row {
             transition: background-color 0.2s ease-in-out;
         }
@@ -176,7 +232,6 @@
                 background-color: #d9ecff !important;
             }
 
-        /* Sort link style */
         .sort-link {
             text-decoration: none;
             color: #0056b3;
@@ -187,9 +242,8 @@
                 text-decoration: underline;
             }
 
-        /* Deep Creamy Blue Header */
         .header-section {
-            background-color: #001f3f; /* Deep creamy blue */
+            background-color: #001f3f;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
@@ -199,5 +253,28 @@
             font-size: 1.8rem;
         }
 
+        /* ✅ New uploaded row glow effect */
+        .newly-uploaded {
+            animation: highlightFade 3s ease-in-out;
+            background-color: #d4edda !important; /* Light green */
+        }
+
+        @keyframes highlightFade {
+            0%
+
+        {
+            background-color: #c3e6cb;
+        }
+
+        50% {
+            background-color: #d4edda;
+        }
+
+        100% {
+            background-color: #ffffff;
+        }
+
+        }
     </style>
 }
+ *@

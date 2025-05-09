@@ -1,6 +1,8 @@
 using WebUI.Services;
 using WebUI.Models;
 using Microsoft.Extensions.Options;
+using OfficeOpenXml;
+using System.ComponentModel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +19,8 @@ builder.Services.AddHttpClient<IEmployeeContactService, EmployeeContactService>(
 
 // Register EmployeeContactService
 builder.Services.AddScoped<IEmployeeContactService, EmployeeContactService>();
+
+
 
 var app = builder.Build();
 
