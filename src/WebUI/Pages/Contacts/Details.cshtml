@@ -22,7 +22,7 @@
     else
     {
         <div class="card">
-            <div class="card-header">
+            <div class="card-header header-section text-white">
                 <h2>Contact Details</h2>
             </div>
             <div class="card-body">
@@ -49,7 +49,7 @@
                 </dl>
             </div>
             <div class="card-footer">
-                <a asp-page="/Index" class="btn btn-secondary">Back to List</a>
+                <a asp-page="/Index" class="btn btn-deepblue">Back to List</a>
                 <a asp-page="./QRCode" asp-route-phone="@Model.Contact.Phone" class="btn btn-success">View QR Code</a>
                 <a asp-page="./VCard" asp-route-phone="@Model.Contact.Phone" class="btn btn-info">Download VCard</a>
                 <a asp-page="./Edit" asp-route-phone="@Model.Contact.Phone" class="btn btn-warning">Edit</a>
@@ -57,3 +57,12 @@
         </div>
     }
 </div>
+@section Styles {
+    <style>
+        /* Deep Creamy Blue Header */
+        .header-section {
+            background-color: #001f3f; /* Deep creamy blue */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+}

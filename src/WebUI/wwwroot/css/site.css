@@ -48,4 +48,15 @@ input[readonly] {
     font-size: 0.875rem; /* Smaller font size */
     width: 100%; /* Make all buttons the same width */
 }
+/* Make all .btn use deep blue */
+.btn {
+    background-color: #003366;
+    color: white;
+    border: none;
+}
+
+    .btn:hover {
+        background-color: #002244;
+        color: white;
+    }
 

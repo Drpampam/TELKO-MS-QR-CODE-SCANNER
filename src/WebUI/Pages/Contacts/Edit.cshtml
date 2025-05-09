@@ -4,9 +4,9 @@
     ViewData["Title"] = "Edit Contact";
 }
 
-<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
-    <div class="card p-4" style="max-width: 500px; width: 100%;">
-        <h1 class="text-center mb-4">Edit Contact</h1>
+<div class="container d-flex justify-content-center align-items-center " style="min-height: 100vh;">
+    <div class="card p-4 contain-section" style="max-width: 500px; width: 100%;">
+        <h1 class="text-center mb-4 text-white">Edit Contact</h1>
 
         @if (TempData["SuccessMessage"] != null)
         {
@@ -63,4 +63,14 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+}
+
+@section Styles {
+    <style>
+        /* Deep Creamy Blue Header */
+        .contain-section {
+            background-color: #001f3f; /* Deep creamy blue */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 }
