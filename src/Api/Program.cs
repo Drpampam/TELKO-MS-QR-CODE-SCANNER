@@ -9,6 +9,7 @@ using Persistence.Repositories;
 using Application.Features.Configurations;
 using Application.Features.Validations;
 using System.Reflection;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,10 +30,23 @@ try
     // 🔹 Add services to the container
     builder.Services.AddControllers();
     builder.Services.AddEndpointsApiExplorer();
-    builder.Services.AddSwaggerGen();
+
+    // 🔹 Configure Swagger with annotations support
+    builder.Services.AddSwaggerGen(c =>
+    {
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "TelkoMs API", Version = "v1" });
+
+        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath))
+        {
+            c.IncludeXmlComments(xmlPath);
+        }
+
+        c.EnableAnnotations();
+    });
 
     builder.Services.AddControllersWithViews();
-
     builder.Services.AddHttpContextAccessor();
 
     builder.Services.AddDbContext<DataContext>(options =>
@@ -41,40 +55,42 @@ try
     });
 
     builder.Services.AddScoped(typeof(IAsyncRepository<>), typeof(AsyncRepository<>));
-
     builder.Services.AddServices();
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddRepository(builder.Configuration);
 
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowAll", builder =>
-        {
-            builder.AllowAnyOrigin()
-                   .AllowAnyMethod()
-                   .AllowAnyHeader();
-        });
-    });
-
     builder.Services.Configure<EmployeeContactDefaultsOptions>(
         builder.Configuration.GetSection("EmployeeContactDefaults"));
-
     builder.Services.AddScoped<EmployeeContactFormValidator>();
 
     var app = builder.Build();
 
-    // Configure the HTTP request pipeline.
-    if (app.Environment.IsDevelopment())
+    // 🔹 UsePathBase for IIS virtual directory (e.g., /BarCodeBackEnd)
+    if (!app.Environment.IsDevelopment())
     {
-        app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UsePathBase("/BarCodeBackEnd");
     }
 
+    // 🔹 Enable static file serving (required for Swagger UI assets)
+    app.UseStaticFiles();
+
+    // 🔹 Error handling
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
+    }
+
+    // 🔹 Swagger setup
+    Log.Information("It got to swagger");
     app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        // 🔹 IMPORTANT: use the correct relative path when hosted in virtual directory
+        c.SwaggerEndpoint("/BarCodeBackEnd/swagger/v1/swagger.json", "TelkoMs API v1");
+        Log.Information("BarCodeBackEnd/swagger/v1/swagger.json, TelkoMs API v1");
+        c.RoutePrefix = string.Empty; // Serve Swagger UI at /BarCodeBackEnd/
+    });
 
-    app.UseSwaggerUI();
-
-    app.UseCors();
     app.UseHttpsRedirection();
     app.UseAuthorization();
     app.MapControllers();
