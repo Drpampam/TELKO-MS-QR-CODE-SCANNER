@@ -29,6 +29,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path == "/index.html")
+    {
+        context.Response.Redirect("/");
+        return;
+    }
+
+    await next();
+});
 
 app.UseRouting();
 app.UseAuthorization();

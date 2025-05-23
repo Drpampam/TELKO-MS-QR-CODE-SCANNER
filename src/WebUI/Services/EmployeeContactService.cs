@@ -35,7 +35,7 @@ namespace WebUI.Services
             const string FailureCode = "99";
 
             var result = await _httpClient.PostJsonAsync<GetAllContacts, DTOs.ApiResponse<PaginationResult<DTOs.EmployeeContact>>>(
-                "/api/v1/contacts/all-contacts",
+                "api/v1/contacts/all-contacts",
                 filter,
                 _logger);
 
@@ -57,7 +57,7 @@ namespace WebUI.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/v1/contacts/{phone}/contact-details");
+                var response = await _httpClient.GetAsync($"api/v1/contacts/{phone}/contact-details");
                 response.EnsureSuccessStatusCode();
                 
                 var result = await response.Content.ReadFromJsonAsync<ApiResponse<EmployeeContact>>();
@@ -74,7 +74,7 @@ namespace WebUI.Services
         {
             try
             {
-                var response = await _httpClient.PostAsync($"/api/v1/qrcode/{phone}/qrcode", null);
+                var response = await _httpClient.PostAsync($"api/v1/qrcode/{phone}/qrcode", null);
                 response.EnsureSuccessStatusCode();
                 
                 var result = await response.Content.ReadFromJsonAsync<ApiResponse<byte[]>>();
@@ -141,7 +141,7 @@ namespace WebUI.Services
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("/api/v1/contacts/create-contact", contact);
+                var response = await _httpClient.PostAsJsonAsync("api/v1/contacts/create-contact", contact);
                 response.EnsureSuccessStatusCode();
                 
                 var result = await response.Content.ReadFromJsonAsync<ApiResponse<EmployeeContact>>();
@@ -158,7 +158,7 @@ namespace WebUI.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"/api/v1/contacts/{phone}/contact.vcf");
+                var response = await _httpClient.GetAsync($"api/v1/contacts/{phone}/contact.vcf");
                 response.EnsureSuccessStatusCode();
                 
                 var bytes = await response.Content.ReadAsByteArrayAsync();
@@ -175,7 +175,7 @@ namespace WebUI.Services
         {
             try
             {
-                var response = await _httpClient.PostAsJsonAsync("/api/v1/contacts", contact);
+                var response = await _httpClient.PostAsJsonAsync("api/v1/contacts", contact);
                 response.EnsureSuccessStatusCode();
                 return new ApiResponse<bool> { Success = true, Data = true };
             }
