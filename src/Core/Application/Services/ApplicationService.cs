@@ -56,7 +56,7 @@ namespace Application.Services
 
                 EmployeeContact employeeContact = new EmployeeContact();
                 req.ConvertFromDto(employeeContact);
-                if (string.IsNullOrEmpty(employeeContact.Phone))
+                if (string.IsNullOrEmpty(employeeContact.WorkPhone))
                 {
                     return new BaseResponse<EmployeeContact>
                     {
@@ -65,7 +65,7 @@ namespace Application.Services
                     };
                 }
 
-                var existingContact = await GetContactDetailsByPhone(employeeContact.Phone);
+                var existingContact = await GetContactDetailsByPhone(employeeContact.WorkPhone);
 
                 if (existingContact.ResponseCode == ResponseCodes.SUCCESS)
                 {
@@ -103,7 +103,7 @@ namespace Application.Services
             try
             {
                 // Validation
-                if (string.IsNullOrEmpty(req.Phone))
+                if (string.IsNullOrEmpty(req.WorkPhone))
                 {
                     return new BaseResponse<EmployeeContact>
                     {
@@ -113,7 +113,7 @@ namespace Application.Services
                 }
 
                 // Check if the contact exists
-                var existingContactResponse = await _repository.SingleOrDefaultAsync(x => x.Phone == req.Phone);
+                var existingContactResponse = await _repository.SingleOrDefaultAsync(x => x.WorkPhone == req.WorkPhone);
                 if (existingContactResponse == null)
                 {
                     return new BaseResponse<EmployeeContact>
@@ -151,7 +151,9 @@ namespace Application.Services
         {
             try
             {
-                var employeeContact = await _repository.SingleOrDefaultAsync(b => b.Phone == phone);
+                var employeeContact = await _repository
+                    .SingleOrDefaultAsync(b => b.WorkPhone != null && b.WorkPhone.Contains(phone));
+
                 if (employeeContact == null)
                 {
                     return new BaseResponse<EmployeeContactDto>
@@ -197,7 +199,7 @@ namespace Application.Services
 
                 var requests = await _repository.WhereQueryable(x => x != null);
 
-                if (!string.IsNullOrEmpty(filter?.Phone)) requests = requests.Where(x => x.Phone == filter.Phone);
+                if (!string.IsNullOrEmpty(filter?.Phone)) requests = requests.Where(x => x.WorkPhone == filter.Phone);
 
                 if (filter?.StartDate != null && filter?.EndDate != null)
                 {
@@ -267,7 +269,7 @@ namespace Application.Services
                 var requests = await _repository.WhereQueryable(x => x != null);
 
                 if (!string.IsNullOrEmpty(filter.Phone))
-                    requests = requests.Where(x => x.Phone == filter.Phone);
+                    requests = requests.Where(x => x.WorkPhone == filter.Phone);
 
                 if (filter.StartDate != null && filter.EndDate != null)
                 {
@@ -451,7 +453,7 @@ namespace Application.Services
                     {
                         string contactIdentifier = !string.IsNullOrEmpty(contact.FullName)
                             ? contact.FullName
-                            : (!string.IsNullOrEmpty(contact.Phone) ? contact.Phone : "Unknown");
+                            : (!string.IsNullOrEmpty(contact.WorkPhone) ? contact.WorkPhone : "Unknown");
 
                         string errorDetails = $"Validation failed for contact '{contactIdentifier}': " +
                                               string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage));
@@ -462,12 +464,12 @@ namespace Application.Services
                     }
 
                     // Check if contact already exists
-                    if (!string.IsNullOrEmpty(contact.Phone))
+                    if (!string.IsNullOrEmpty(contact.WorkPhone))
                     {
-                        var existingContact = await GetContactDetailsByPhone(contact.Phone);
+                        var existingContact = await GetContactDetailsByPhone(contact.WorkPhone);
                         if (existingContact.ResponseCode == ResponseCodes.SUCCESS)
                         {
-                            errors.Add($"Contact with phone number '{contact.Phone}' already exists");
+                            errors.Add($"Contact with phone number '{contact.WorkPhone}' already exists");
                             failureCount++;
                             continue;
                         }
@@ -556,7 +558,7 @@ namespace Application.Services
                         contact.FullName = CleanField(dataRow[fullNameIndex]);
 
                     if (headerIndexMap.TryGetValue("phone", out int phoneIndex))
-                        contact.Phone = CleanField(dataRow[phoneIndex]);
+                        contact.WorkPhone = CleanField(dataRow[phoneIndex]);
 
                     if (headerIndexMap.TryGetValue("email", out int emailIndex))
                         contact.Email = CleanField(dataRow[emailIndex]);
@@ -628,7 +630,7 @@ namespace Application.Services
                             contact.FullName = CleanField(row.Cell(fullNameIndex + 1).Value.ToString());
 
                         if (headerIndexMap.TryGetValue("phone", out int phoneIndex))
-                            contact.Phone = CleanField(row.Cell(phoneIndex + 1).Value.ToString());
+                            contact.WorkPhone = CleanField(row.Cell(phoneIndex + 1).Value.ToString());
 
                         if (headerIndexMap.TryGetValue("email", out int emailIndex))
                             contact.Email = CleanField(row.Cell(emailIndex + 1).Value.ToString());

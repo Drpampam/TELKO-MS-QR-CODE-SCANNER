@@ -15,7 +15,7 @@ namespace Application.Features.Validations
                 .WithMessage("Name must be text and not literally 'string'")
                 .MaximumLength(100);
 
-            RuleFor(m => m.Phone)
+            RuleFor(m => m.WorkPhone)
                 .NotEmpty()
                 .NotNull()
                 .WithMessage("Phone number is Required")

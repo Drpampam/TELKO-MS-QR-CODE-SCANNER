@@ -57,7 +57,13 @@ namespace WebUI.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"api/v1/contacts/{phone}/contact-details");
+                if (string.IsNullOrWhiteSpace(phone))
+                {
+                    return new ApiResponse<EmployeeContact> { Success = false, Message = "Phone number cannot be empty" };
+                }
+
+                var encodedPhone = NormalizePhoneNumber(phone); // This handles spaces, +, etc.
+                var response = await _httpClient.GetAsync($"api/v1/contacts/{encodedPhone}/contact-details");
                 response.EnsureSuccessStatusCode();
                 
                 var result = await response.Content.ReadFromJsonAsync<ApiResponse<EmployeeContact>>();
@@ -74,7 +80,8 @@ namespace WebUI.Services
         {
             try
             {
-                var response = await _httpClient.PostAsync($"api/v1/qrcode/{phone}/qrcode", null);
+                var encodedPhone = Uri.EscapeDataString(phone); // This handles spaces, +, etc.
+                var response = await _httpClient.PostAsync($"api/v1/qrcode/{encodedPhone}/qrcode", null);
                 response.EnsureSuccessStatusCode();
                 
                 var result = await response.Content.ReadFromJsonAsync<ApiResponse<byte[]>>();
@@ -99,7 +106,9 @@ namespace WebUI.Services
                     client.BaseAddress = new Uri(_baseUrl); // Base URL from configuration
                 }
 
-                var response = await client.PostAsync($"api/v1/QRCode/{phone}/qrcode", null);
+                var normalizedPhone = NormalizePhoneNumber(phone);
+
+                var response = await client.PostAsync($"api/v1/QRCode/{normalizedPhone}/qrcode", null);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -158,7 +167,8 @@ namespace WebUI.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync($"api/v1/contacts/{phone}/contact.vcf");
+                var encodedPhone = Uri.EscapeDataString(phone); // This handles spaces, +, etc.
+                var response = await _httpClient.GetAsync($"api/v1/contacts/{encodedPhone}/contact.vcf");
                 response.EnsureSuccessStatusCode();
                 
                 var bytes = await response.Content.ReadAsByteArrayAsync();
@@ -212,9 +222,25 @@ namespace WebUI.Services
             }
         }
 
+        public static string NormalizePhoneNumber(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return input;
 
+            // If there is a space, return only the part after the space
+            if (input.Contains(' '))
+            {
+                var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length > 1)
+                    input = parts[1];
+                else
+                    input = parts[0];
+            }
 
+            // Remove all non-digit characters
+            var cleaned = new string(input.Where(char.IsDigit).ToArray());
 
-
+            return cleaned;
+        }
     }
 } 

@@ -24,8 +24,8 @@
 
             <div class="form-group">
                 <label for="Phone">Phone</label>
-                <input type="text" id="Phone" class="form-control" asp-for="Contact.Phone" readonly />
-                <span asp-validation-for="Contact.Phone" class="text-danger"></span>
+                <input type="text" id="Phone" class="form-control" asp-for="Contact.WorkPhone" readonly />
+                <span asp-validation-for="Contact.WorkPhone" class="text-danger"></span>
             </div>
 
             <div class="form-group">
@@ -55,7 +55,7 @@
             <!-- Button Row -->
             <div class="form-group d-flex justify-content-between">
                 <button type="submit" class="btn btn-primary">Save Changes</button>
-                <a href="@Url.Page("/Contacts/Details", new { phone = Model.Contact.Phone })" class="btn btn-secondary">Back</a>
+                <a href="@Url.Page("/Contacts/Details", new { phone = Model.Contact.WorkPhone })" class="btn btn-secondary">Back</a>
             </div>
         </form>
     </div>

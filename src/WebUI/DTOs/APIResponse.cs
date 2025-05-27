@@ -1,4 +1,6 @@
-﻿namespace WebUI.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WebUI.DTOs;
 
 public class ApiResponse<T>
 {
@@ -19,9 +21,10 @@ public class PaginationResult<T>
 
 public class EmployeeContact
 {
-    public string FullName { get; set; }
-    public string Phone { get; set; }
-    public string? Email { get; set; }
+    public string? FullName { get; set; }
+    public string PersonalPhone { get; set; } = string.Empty;
+    public string WorkPhone { get; set; } = null!; 
+    public string Email { get; set; } = string.Empty;
     public string? Title { get; set; }
     public string? Company { get; set; }
     public string? LinkedIn { get; set; }

@@ -1,4 +1,7 @@
-﻿using Application.Features.ExtentionHelpers;
+﻿using System.ComponentModel.DataAnnotations;
+using Application.Features.ExtentionHelpers;
+using DocumentFormat.OpenXml.ExtendedProperties;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Domain.Entities;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using static QRCoder.PayloadGenerator;
@@ -8,8 +11,8 @@ namespace Application.DTOs
     public class EmployeeContactDto
     {
         public string FullName { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
+        public string PersonalPhone { get; set; } = string.Empty;
+        public string WorkPhone { get; set; } = null!; public string Email { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Company { get; set; } = string.Empty;
         public string LinkedIn { get; set; } = string.Empty;
@@ -20,7 +23,8 @@ namespace Application.DTOs
                 employee = new EmployeeContact();
 
             FullName = employee.FullName;
-            Phone = employee.Phone;
+            PersonalPhone = employee.PersonalPhone;
+            WorkPhone = employee.WorkPhone;
             Email = employee.Email;
             Title = employee.Title;
             Company = employee.Company;
@@ -33,7 +37,8 @@ namespace Application.DTOs
                 employee = new EmployeeContact();
 
             employee.FullName = FullName;
-            employee.Phone = Phone;
+            employee.WorkPhone = WorkPhone;
+            employee.PersonalPhone = PersonalPhone;
             employee.Email = Email;
             employee.Title = Title;
             employee.Company = Company;
@@ -44,15 +49,25 @@ namespace Application.DTOs
     public record EmployeeContactReponseDto
     {
         public string FullName { get; set; } = string.Empty;
-        public string Phone { get; set; } = string.Empty;
+        public string PersonalPhone { get; set; } = string.Empty;
+        public string WorkPhone { get; set; } = null!; public string Email { get; set; } = string.Empty;
+        public string JobTitle { get; set; } = string.Empty;
+        public string Company { get; set; } = string.Empty;
+        public string LinkedIn { get; set; } = string.Empty;
 
         public void ConvertToDto(EmployeeContact employee)
         {
             if (employee == null)
                 employee = new EmployeeContact();
 
+
             FullName = employee.FullName;
-            Phone = employee.Phone;      
+            PersonalPhone = employee.PersonalPhone;
+            WorkPhone = employee.WorkPhone;
+            Email = employee.Email;
+            JobTitle = employee.Title;
+            Company = employee.Company;
+            LinkedIn = employee.LinkedIn;
         }
     }
 

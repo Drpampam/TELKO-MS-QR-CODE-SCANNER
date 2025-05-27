@@ -32,7 +32,7 @@ namespace Application.Features.Helpers
             sb.AppendLine($"FN:{contact.FullName}");
             sb.AppendLine($"ORG:{contact.Company}");
             sb.AppendLine($"TITLE:{contact.Title}");
-            sb.AppendLine($"TEL;TYPE=CELL:{contact.Phone}");
+            sb.AppendLine($"TEL;TYPE=CELL:{contact.WorkPhone}");
             sb.AppendLine($"EMAIL:{contact.Email}");
             sb.AppendLine($"URL:{contact.LinkedIn}");
             sb.AppendLine("END:VCARD");
@@ -48,14 +48,28 @@ namespace Application.Features.Helpers
             var nameParts = contact.FullName.Split(' ');
             var firstName = nameParts.Length > 0 ? nameParts[0] : "";
             var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+
             sb.AppendLine($"N:{lastName};{firstName};;;");
             sb.AppendLine($"FN:{contact.FullName}");
             sb.AppendLine($"ORG:{contact.Company}");
             sb.AppendLine($"TITLE:{contact.Title}");
-            sb.AppendLine($"TEL;TYPE=CELL:{contact.Phone}");
+
+            // Add work phone if available
+            if (!string.IsNullOrEmpty(contact.WorkPhone))
+            {
+                sb.AppendLine($"TEL;TYPE=WORK:{contact.WorkPhone}");
+            }
+
+            // Add personal/mobile phone if available
+            if (!string.IsNullOrEmpty(contact.PersonalPhone))
+            {
+                sb.AppendLine($"TEL;TYPE=CELL:{contact.PersonalPhone}");
+            }
+
             sb.AppendLine($"EMAIL:{contact.Email}");
             sb.AppendLine($"URL:{contact.LinkedIn}");
             sb.AppendLine("END:VCARD");
+
             return sb.ToString();
         }
     }

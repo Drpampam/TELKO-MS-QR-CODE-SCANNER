@@ -31,7 +31,7 @@
                     <dd class="col-sm-9">@Model.Contact.FullName</dd>
 
                     <dt class="col-sm-3">Phone</dt>
-                    <dd class="col-sm-9">@Model.Contact.Phone</dd>
+                    <dd class="col-sm-9">@Model.Contact.WorkPhone</dd>
 
                     <dt class="col-sm-3">Email</dt>
                     <dd class="col-sm-9">@Model.Contact.Email</dd>
@@ -50,9 +50,9 @@
             </div>
             <div class="card-footer">
                 <a asp-page="/Index" class="btn btn-deepblue">Back to List</a>
-                <a asp-page="./QRCode" asp-route-phone="@Model.Contact.Phone" class="btn btn-success">View QR Code</a>
-                <a asp-page="./VCard" asp-route-phone="@Model.Contact.Phone" class="btn btn-info">Download VCard</a>
-                <a asp-page="./Edit" asp-route-phone="@Model.Contact.Phone" class="btn btn-warning">Edit</a>
+                <a asp-page="./QRCode" asp-route-phone="@Model.Contact.WorkPhone" class="btn btn-success">View QR Code</a>
+                <a asp-page="./VCard" asp-route-phone="@Model.Contact.WorkPhone" class="btn btn-info">Download VCard</a>
+                <a asp-page="./Edit" asp-route-phone="@Model.Contact.WorkPhone" class="btn btn-warning">Edit</a>
             </div>
         </div>
     }

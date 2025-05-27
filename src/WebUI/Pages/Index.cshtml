@@ -55,17 +55,17 @@
             <tbody>
                 @foreach (var contact in Model.Contacts)
                 {
-                    <tr class="clickable-row" data-url="@Url.Page("/Contacts/Details", new { id = contact.Phone })">
+                    <tr class="clickable-row" data-url="@Url.Page("/Contacts/Details", new { id = contact.WorkPhone })">
                         <td>@contact.FullName</td>
-                        <td>@contact.Phone</td>
+                        <td>@contact.WorkPhone</td>
                         <td>@contact.Email</td>
                         <td>@contact.Title</td>
                         <td>@contact.Company</td>
                         <td>
                             <div class="btn-group">
                                 <!-- Uniform button size with btn-sm -->
-                                <a asp-page="/Contacts/Details" asp-route-phone="@contact.Phone" class="btn btn-sm btn-info">Details</a>
-                                <a asp-page="/Contacts/QRCode" asp-route-phone="@contact.Phone" class="btn btn-sm btn-success">QR Code</a>
+                                <a asp-page="/Contacts/Details" asp-route-phone="@contact.WorkPhone" class="btn btn-sm btn-info">Details</a>
+                                <a asp-page="/Contacts/QRCode" asp-route-phone="@contact.WorkPhone" class="btn btn-sm btn-success">QR Code</a>
                             </div>
                         </td>
                     </tr>

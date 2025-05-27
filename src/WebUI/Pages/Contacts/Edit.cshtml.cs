@@ -49,7 +49,7 @@ namespace WebUI.Pages.Contacts
             if (result.Success)
             {
                 TempData["SuccessMessage"] = "Contact updated successfully!";
-                return RedirectToPage("/Contacts/Details", new { phone = Contact.Phone });
+                return RedirectToPage("/Contacts/Details", new { phone = Contact.WorkPhone });
             }
             else
             {

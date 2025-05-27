@@ -24,7 +24,14 @@ namespace WebUI.Models
         /// </summary>
         [Required(ErrorMessage = "Phone number is required")]
         [RegularExpression(@"^\+?[1-9]\d{1,14}$", ErrorMessage = "Phone number must be a valid international format")]
-        public string Phone { get; set; } = string.Empty;
+        public string PersonalPhone { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the CUG phone number of the employee
+        /// </summary>
+        [Required(ErrorMessage = "CUG Phone number is required")]
+        [RegularExpression(@"^\+?[1-9]\d{1,14}$", ErrorMessage = "Phone number must be a valid international format")]
+        public string WorkPhone { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the email address of the employee
